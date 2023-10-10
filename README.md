@@ -22,7 +22,7 @@ GitHub Actionsは、特定のGitHubイベント（例: プルリクエストの�
 
 1. リポジトリに移動し、**Actions**タブをクリックします。
 2. **New workflow**をクリックし、**set up a workflow yourself**を選択します。
-3. ワークフローファイル（例: Slackにメッセージを送る）を以下のように編集します:
+3. ワークフローファイル（例: PRが立ったらSlackにメッセージを送る）を以下のように編集します:
 
 ```
 name: Slack Notification for PR
