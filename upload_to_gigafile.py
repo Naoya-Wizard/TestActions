@@ -11,15 +11,15 @@ def upload_file(file_path):
     return download_url
 
 if __name__ == "__main__":
-    download_urls = []
+    download_info = []
 
     # コマンドライン引数から複数のファイルパスを取得
     for file_path in sys.argv[1:]:
         download_url = upload_file(file_path)
         print(f"Uploaded file URL for {file_path}: {download_url}")
-        download_urls.append(download_url)
+        download_info.append(f"{file_path}:{download_url}")
 
-    # すべてのダウンロードURLをセミコロンで区切った文字列として環境変数に追加
+    # ファイル名とURLのペアをセミコロンで区切った文字列として環境変数に追加
     github_env = os.environ['GITHUB_ENV']
     with open(github_env, 'a') as file:
-        file.write(f"DOWNLOAD_URLS={';'.join(download_urls)}\n")
+        file.write(f"DOWNLOAD_INFO={';'.join(download_info)}\n")
