@@ -25,3 +25,11 @@ jobs:
         $joinedPaths = $filePaths -join " "
         python upload_to_gigafile.py $joinedPaths
       shell: pwsh
+
+    - name: Send message to Slack
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+        DOWNLOAD_INFO: ${{ env.DOWNLOAD_INFO }}
+      run: python send_to_slack.py
+      shell: pwsh
