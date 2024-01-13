@@ -19,7 +19,7 @@ jobs:
 
     - name: Upload files to Gigafile
       run: |
-        $filePaths = @("path/to/testfile1", "path/to/testfile2")
+        $filePaths = @("./test1.txt", "./test2.txt")
         foreach ($filePath in $filePaths) {
           python upload_to_gigafile.py $filePath
         }
