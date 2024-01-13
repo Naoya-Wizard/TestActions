@@ -16,6 +16,7 @@ if __name__ == "__main__":
     # コマンドライン引数から複数のファイルパスを取得
     print(sys.argv[1:])
     for file_path in sys.argv[1:]:
+        print(file_path)
         download_url = upload_file(file_path)
         print(f"Uploaded file URL for {file_path}: {download_url}")
         download_info.append(f"{file_path}:{download_url}")
