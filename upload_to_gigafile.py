@@ -1,5 +1,5 @@
 import sys
-from gigafile import GFile
+from gfile import GFile
 
 def upload_file(file_path):
     # Gigafileにファイルをアップロードし、URLを取得
