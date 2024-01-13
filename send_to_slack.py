@@ -13,8 +13,10 @@ def send_slack_message(channel, message):
 
 if __name__ == "__main__":
     slack_channel = os.getenv('SLACK_CHANNEL')
-    download_urls = os.getenv('DOWNLOAD_URLS').split(';')
+    download_info = os.getenv('DOWNLOAD_INFO').split(';')
 
-    for url in download_urls:
-        message = f"Download URL: {url}"
+    for info in download_info:
+        file_path, download_url = info.split(':')
+        file_name = os.path.basename(file_path)
+        message = f"【ギガファイル】\nURL：{download_url}\nファイル名：{file_name}"
         send_slack_message(slack_channel, message)
