@@ -15,7 +15,9 @@ jobs:
         python-version: '3.11.1'
 
     - name: Install dependencies
-      run: pip install gigafile
+      run: |
+        pip install gigafile
+        pip list
 
     - name: Upload files to Gigafile
       run: |
