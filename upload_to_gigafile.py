@@ -29,4 +29,4 @@ if __name__ == "__main__":
     # ファイル名とURLのペアをセミコロンで区切った文字列として環境変数に追加
     github_env = os.environ['GITHUB_ENV']
     with open(github_env, 'a') as file:
-        file.write(f"DOWNLOAD_INFO={';'.join(download_info)}\n")
+        file.write(f"DOWNLOAD_URLS={';'.join(download_info)}\n")
