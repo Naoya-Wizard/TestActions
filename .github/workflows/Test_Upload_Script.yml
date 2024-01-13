@@ -1,0 +1,26 @@
+name: Test Upload Script
+
+on: [push]
+
+jobs:
+  test-upload:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: pip install gigafile
+
+    - name: Upload files to Gigafile
+      run: |
+        $filePaths = @("path/to/testfile1", "path/to/testfile2")
+        foreach ($filePath in $filePaths) {
+          python upload_to_gigafile.py $filePath
+        }
+      shell: pwsh
