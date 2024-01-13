@@ -18,6 +18,7 @@ jobs:
       run: |
         pip install gigafile
         pip list
+        pip show gigafile
 
     - name: Upload files to Gigafile
       run: |
