@@ -13,7 +13,7 @@ def send_slack_message(channel, message):
 
 if __name__ == "__main__":
     slack_channel = os.getenv('SLACK_CHANNEL')
-    download_info = os.getenv('DOWNLOAD_INFO').split(';')
+    download_info = os.getenv('DOWNLOAD_URLS').split(';')
 
     for info in download_info:
         file_path, download_url = info.split(':')
