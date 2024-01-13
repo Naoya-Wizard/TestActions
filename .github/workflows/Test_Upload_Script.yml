@@ -26,6 +26,9 @@ jobs:
         python upload_to_gigafile.py $joinedPaths
       shell: pwsh
 
+    - name: Install Slack SDK
+      run: pip install slack_sdk
+
     - name: Send message to Slack
       env:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
