@@ -20,12 +20,8 @@ jobs:
         pip install gigafile
 
     - name: Upload files to Gigafile
-      env:
-        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-        SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
       run: |
         $filePaths = @("./test1.txt", "./test2.txt")
         $joinedPaths = $filePaths -join " "
         python upload_to_gigafile.py $joinedPaths
       shell: pwsh
-
