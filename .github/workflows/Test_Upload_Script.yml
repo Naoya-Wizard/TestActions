@@ -33,6 +33,6 @@ jobs:
       env:
         SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
-        DOWNLOAD_INFO: ${{ env.DOWNLOAD_INFO }}
+        DOWNLOAD_URLS: ${{ env.DOWNLOAD_URLS }}
       run: python send_to_slack.py
       shell: pwsh
