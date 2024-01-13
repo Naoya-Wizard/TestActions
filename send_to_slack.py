@@ -16,7 +16,7 @@ if __name__ == "__main__":
     download_info = os.getenv('DOWNLOAD_URLS').split(';')
 
     for info in download_info:
-        file_path, download_url = info.split(':')
+        file_path, download_url = info.split(':', 1)
         file_name = os.path.basename(file_path)
         message = f"【ギガファイル】\nURL：{download_url}\nファイル名：{file_name}"
         send_slack_message(slack_channel, message)
