@@ -13,9 +13,14 @@ def upload_file(file_path):
 if __name__ == "__main__":
     download_info = []
 
-    # コマンドライン引数から複数のファイルパスを取得
-    print(sys.argv[1:])
-    for file_path in sys.argv[1:]:
+    # 最初のコマンドライン引数を取得（すべてのファイルパスが含まれる）
+    all_file_paths = sys.argv[1]
+
+    # 空白で分割して個々のファイルパスを取得
+    file_paths = all_file_paths.split(" ")
+    print(file_paths)
+
+    for file_path in file_paths:
         print(file_path)
         download_url = upload_file(file_path)
         print(f"Uploaded file URL for {file_path}: {download_url}")
