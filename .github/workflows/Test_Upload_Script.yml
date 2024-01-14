@@ -1,0 +1,38 @@
+name: Test Upload Script
+
+on: [push]
+
+jobs:
+  test-upload:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.11.1'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install gigafile
+
+    - name: Upload files to Gigafile
+      run: |
+        $filePaths = @("./test1.txt", "./test2.txt")
+        $joinedPaths = $filePaths -join " "
+        python upload_to_gigafile.py $joinedPaths
+      shell: pwsh
+
+    - name: Install Slack SDK
+      run: pip install slack_sdk
+
+    - name: Send message to Slack
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+        DOWNLOAD_URLS: ${{ env.DOWNLOAD_URLS }}
+      run: python send_to_slack.py
+      shell: pwsh
