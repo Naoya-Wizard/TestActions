@@ -1,5 +1,6 @@
 
-# GitHub Actionsガイド
+# このリポジトリは？
+PR内でactionsをテストするリポジトリです。
 
 ## GitHub Actionsとは？
 
