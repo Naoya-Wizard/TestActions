@@ -1,6 +1,6 @@
 
 # このリポジトリは？
-PR内でactionsをテストするリポジトリです。
+PR内でactionsをテストするリポジトリです。　テスト後はmergeせずcloseする。
 
 ## GitHub Actionsとは？
 
