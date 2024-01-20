@@ -1,0 +1,127 @@
+name: Python Application Build and Upload to Drive
+
+on:
+  push:
+    branches:
+      - build-on-mac
+
+jobs:
+  build-and-upload:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Check for Python file changes
+      run: |
+        diffOutput=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+        changed_files=($(echo $diffOutput | tr ' ' '\n'))
+        echo "Changed files: ${changed_files[@]}"
+        py_files_changed=false
+        for file in "${changed_files[@]}"; do
+          if [[ "$file" == *.py ]] && [[ "$file" != "upload_to_drive.py" ]]; then
+            py_files_changed=true
+            break
+          fi
+        done
+        if [ "$py_files_changed" = false ]; then
+          echo "No relevant Python files have changed, stopping the job."
+          exit 1
+        fi
+        echo "changed_files=${changed_files[*]}" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.11.1'
+
+    - name: Install Dependencies from requirements.txt
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Install PyInstaller
+      run: pip install pyinstaller
+
+    - name: Build with PyInstaller
+      run: |
+        skip_files=("upload_to_gigafile.py" "smbc_botv25_nonLimit.py" "send_to_slack.py")
+        changed_files=(${changed_files[@]})
+        for file in "${changed_files[@]}"; do
+          if [[ "$file" == *.py ]] && [[ ! " ${skip_files[@]} " =~ " $file " ]]; then
+            echo "Processing file: $file"
+            pyinstaller "$file" --onefile
+          elif [[ " ${skip_files[@]} " =~ " $file " ]]; then
+            echo "Skipping file: $file"
+          fi
+        done
+      shell: bash
+
+    - name: List generated files in dist folder
+      run: ls dist
+
+    - name: Collect .app file names from dist folder
+      id: collect_app_files
+      run: |
+        echo "Finding .app files in dist folder..."
+        filePaths=$(find ./dist -mindepth 1 -maxdepth 1 -name "*.app")
+        appFileNames=()
+        for filePath in $filePaths; do
+          fileName=$(basename "$filePath")
+          echo "Found .app file: $fileName"
+          appFileNames+=("$fileName")
+        done
+        if [ ${#appFileNames[@]} -eq 0 ]; then
+          echo "No .app files found."
+        else
+          echo "Collected .app file names: ${appFileNames[*]}"
+        fi
+        echo "::set-output name=APP_FILE_NAMES::${appFileNames[*]}"
+
+    - name: Install dependencies for upload
+      run: |
+        python -m pip install --upgrade pip
+        pip install gigafile
+
+    - name: Compress .app directories and Adjust file names
+      id: compress_and_adjust
+      run: |
+        appFileNames=(${APP_FILE_NAMES})
+        adjustedFileNames=()
+        for appName in "${appFileNames[@]}"; do
+          if [[ "$appName" == *.app ]]; then
+            zipFileName="${appName}.zip"
+            zip -r "./dist/${zipFileName}" "./dist/$appName"
+            adjustedFileNames+=("$zipFileName")
+          else
+            adjustedFileNames+=("$appName")
+          fi
+        done
+        echo "Adjusted file names: ${adjustedFileNames[*]}"
+        echo "::set-output name=ADJUSTED_FILE_NAMES::${adjustedFileNames[*]}"
+      env:
+        APP_FILE_NAMES: ${{ steps.collect_app_files.outputs.APP_FILE_NAMES }}
+
+    - name: Upload files to Gigafile
+      run: |
+        adjustedFileNames=(${ADJUSTED_FILE_NAMES})
+        filePaths=("${adjustedFileNames[@]/#/./dist/}")
+        joinedPaths="${filePaths[*]}"
+        python upload_to_gigafile.py $joinedPaths
+      env:
+        ADJUSTED_FILE_NAMES: ${{ steps.compress_and_adjust.outputs.ADJUSTED_FILE_NAMES }}
+      shell: bash
+
+    - name: Install Slack SDK
+      run: pip install slack_sdk
+
+    - name: Send message to Slack
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+        DOWNLOAD_URLS: ${{ env.DOWNLOAD_URLS }}
+      run: python send_to_slack.py
+      shell: bash
