@@ -66,11 +66,16 @@ jobs:
     - name: Collect built file names from dist folder
       id: collect_files
       run: |
-        filePaths=$(find ./dist -type f ! -name '*.spec')
+        filePaths=$(find ./dist -mindepth 1 -maxdepth 1)
         fileNames=()
         for filePath in $filePaths; do
-          fileName=$(basename $filePath)
-          fileNames+=($fileName)
+          if [[ -d $filePath && $filePath == *.app ]]; then
+            # For .app directories
+            fileNames+=($(basename "$filePath"))
+          elif [[ -f $filePath ]]; then
+            # For regular files
+            fileNames+=($(basename "$filePath"))
+          fi
         done
         echo "::set-output name=FILE_NAMES::${fileNames[*]}"
 
