@@ -86,27 +86,24 @@ jobs:
         python -m pip install --upgrade pip
         pip install gigafile
 
-    - name: Compress .app directories
+    - name: Compress .app directories and Adjust file names
+      id: compress_and_adjust
       run: |
         appFileNames=(${APP_FILE_NAMES})
+        adjustedFileNames=()
         for appName in "${appFileNames[@]}"; do
           if [[ "$appName" == *.app ]]; then
-            zip -r "./dist/${appName}.zip" "./dist/$appName"
-          fi
-        done
-
-    - name: Adjust file paths for upload
-      id: adjust_file_paths
-      run: |
-        adjustedFileNames=()
-        for appName in ${APP_FILE_NAMES}; do
-          if [[ "$appName" == *.app ]]; then
-            adjustedFileNames+=("${appName}.zip")
+            zipFileName="${appName}.zip"
+            zip -r "./dist/${zipFileName}" "./dist/$appName"
+            adjustedFileNames+=("$zipFileName")
           else
             adjustedFileNames+=("$appName")
           fi
         done
+        echo "Adjusted file names: ${adjustedFileNames[*]}"
         echo "::set-output name=ADJUSTED_FILE_NAMES::${adjustedFileNames[*]}"
+      env:
+        APP_FILE_NAMES: ${{ steps.collect_app_files.outputs.APP_FILE_NAMES }}
 
     - name: Upload files to Gigafile
       run: |
