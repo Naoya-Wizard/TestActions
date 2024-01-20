@@ -1,0 +1,101 @@
+name: Python Application Build and Upload to Drive
+
+on:
+  push:
+    branches:
+      - build-on-mac
+
+jobs:
+  build-and-upload:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Check for Python file changes
+      run: |
+        diffOutput=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+        changed_files=($(echo $diffOutput | tr ' ' '\n'))
+        echo "Changed files: ${changed_files[@]}"
+        py_files_changed=false
+        for file in "${changed_files[@]}"; do
+          if [[ "$file" == *.py ]] && [[ "$file" != "upload_to_drive.py" ]]; then
+            py_files_changed=true
+            break
+          fi
+        done
+        if [ "$py_files_changed" = false ]; then
+          echo "No relevant Python files have changed, stopping the job."
+          exit 1
+        fi
+        echo "changed_files=${changed_files[*]}" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.11.1'
+
+    - name: Install Dependencies from requirements.txt
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Install PyInstaller
+      run: pip install pyinstaller
+
+    - name: Build with PyInstaller
+      run: |
+        skip_files=("upload_to_gigafile.py" "smbc_botv25_nonLimit.py" "send_to_slack.py")
+        changed_files=(${changed_files[@]})
+        for file in "${changed_files[@]}"; do
+          if [[ "$file" == *.py ]] && [[ ! " ${skip_files[@]} " =~ " $file " ]]; then
+            echo "Processing file: $file"
+            pyinstaller "$file" --onefile --noconsole
+          elif [[ " ${skip_files[@]} " =~ " $file " ]]; then
+            echo "Skipping file: $file"
+          fi
+        done
+      shell: bash
+
+    - name: List generated files in dist folder
+      run: ls dist
+
+    - name: Collect built file names from dist folder
+      id: collect_files
+      run: |
+        filePaths=$(find ./dist -type f ! -name '*.spec')
+        fileNames=()
+        for filePath in $filePaths; do
+          fileName=$(basename $filePath)
+          fileNames+=($fileName)
+        done
+        echo "::set-output name=FILE_NAMES::${fileNames[*]}"
+
+    - name: Install dependencies for upload
+      run: |
+        python -m pip install --upgrade pip
+        pip install gigafile
+
+    - name: Upload files to Gigafile
+      run: |
+        fileNames=(${FILE_NAMES})
+        filePaths=("${fileNames[@]/#/./dist/}")
+        joinedPaths="${filePaths[*]}"
+        python upload_to_gigafile.py $joinedPaths
+      env:
+        FILE_NAMES: ${{ steps.collect_files.outputs.FILE_NAMES }}
+      shell: bash
+
+    - name: Install Slack SDK
+      run: pip install slack_sdk
+
+    - name: Send message to Slack
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+        DOWNLOAD_URLS: ${{ env.DOWNLOAD_URLS }}
+      run: python send_to_slack.py
+      shell: bash
