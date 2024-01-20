@@ -66,12 +66,19 @@ jobs:
     - name: Collect .app file names from dist folder
       id: collect_app_files
       run: |
+        echo "Finding .app files in dist folder..."
         filePaths=$(find ./dist -mindepth 1 -maxdepth 1 -type f -name "*.app")
         appFileNames=()
         for filePath in $filePaths; do
           fileName=$(basename "$filePath")
+          echo "Found .app file: $fileName"
           appFileNames+=("$fileName")
         done
+        if [ ${#appFileNames[@]} -eq 0 ]; then
+          echo "No .app files found."
+        else
+          echo "Collected .app file names: ${appFileNames[*]}"
+        fi
         echo "::set-output name=APP_FILE_NAMES::${appFileNames[*]}"
 
     - name: Install dependencies for upload
