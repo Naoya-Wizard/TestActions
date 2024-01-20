@@ -112,7 +112,7 @@ jobs:
         joinedPaths="${filePaths[*]}"
         python upload_to_gigafile.py $joinedPaths
       env:
-        ADJUSTED_FILE_NAMES: ${{ steps.adjust_file_paths.outputs.ADJUSTED_FILE_NAMES }}
+        ADJUSTED_FILE_NAMES: ${{ steps.compress_and_adjust.outputs.ADJUSTED_FILE_NAMES }}
       shell: bash
 
     - name: Install Slack SDK
