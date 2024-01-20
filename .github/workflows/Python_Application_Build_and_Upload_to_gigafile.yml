@@ -67,7 +67,7 @@ jobs:
       id: collect_app_files
       run: |
         echo "Finding .app files in dist folder..."
-        filePaths=$(find ./dist -mindepth 1 -maxdepth 1 -type f -name "*.app")
+        filePaths=$(find ./dist -mindepth 1 -maxdepth 1 -name "*.app")
         appFileNames=()
         for filePath in $filePaths; do
           fileName=$(basename "$filePath")
