@@ -3,7 +3,7 @@ name: Python Application Build and Upload to Drive
 on:
   push:
     branches:
-      - main
+      - build-on-mac
 
 jobs:
   build-and-upload:
