@@ -63,35 +63,30 @@ jobs:
     - name: List generated files in dist folder
       run: ls dist
 
-    - name: Collect built file names from dist folder
-      id: collect_files
+    - name: Collect .app file names from dist folder
+      id: collect_app_files
       run: |
-        filePaths=$(find ./dist -mindepth 1 -maxdepth 1)
-        fileNames=()
+        filePaths=$(find ./dist -mindepth 1 -maxdepth 1 -type f -name "*.app")
+        appFileNames=()
         for filePath in $filePaths; do
-          if [[ -d $filePath && $filePath == *.app ]]; then
-            # For .app directories
-            fileNames+=($(basename "$filePath"))
-          elif [[ -f $filePath ]]; then
-            # For regular files
-            fileNames+=($(basename "$filePath"))
-          fi
+          fileName=$(basename "$filePath")
+          appFileNames+=("$fileName")
         done
-        echo "::set-output name=FILE_NAMES::${fileNames[*]}"
+        echo "::set-output name=APP_FILE_NAMES::${appFileNames[*]}"
 
     - name: Install dependencies for upload
       run: |
         python -m pip install --upgrade pip
         pip install gigafile
 
-    - name: Upload files to Gigafile
+    - name: Upload .app files to Gigafile
       run: |
-        fileNames=(${FILE_NAMES})
-        filePaths=("${fileNames[@]/#/./dist/}")
+        appFileNames=(${APP_FILE_NAMES})
+        filePaths=("${appFileNames[@]/#/./dist/}")
         joinedPaths="${filePaths[*]}"
         python upload_to_gigafile.py $joinedPaths
       env:
-        FILE_NAMES: ${{ steps.collect_files.outputs.FILE_NAMES }}
+        APP_FILE_NAMES: ${{ steps.collect_app_files.outputs.APP_FILE_NAMES }}
       shell: bash
 
     - name: Install Slack SDK
