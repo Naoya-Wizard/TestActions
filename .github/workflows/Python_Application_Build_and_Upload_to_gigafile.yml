@@ -86,14 +86,36 @@ jobs:
         python -m pip install --upgrade pip
         pip install gigafile
 
-    - name: Upload .app files to Gigafile
+    - name: Compress .app directories
       run: |
         appFileNames=(${APP_FILE_NAMES})
-        filePaths=("${appFileNames[@]/#/./dist/}")
+        for appName in "${appFileNames[@]}"; do
+          if [[ "$appName" == *.app ]]; then
+            zip -r "./dist/${appName}.zip" "./dist/$appName"
+          fi
+        done
+
+    - name: Adjust file paths for upload
+      id: adjust_file_paths
+      run: |
+        adjustedFileNames=()
+        for appName in ${APP_FILE_NAMES}; do
+          if [[ "$appName" == *.app ]]; then
+            adjustedFileNames+=("${appName}.zip")
+          else
+            adjustedFileNames+=("$appName")
+          fi
+        done
+        echo "::set-output name=ADJUSTED_FILE_NAMES::${adjustedFileNames[*]}"
+
+    - name: Upload files to Gigafile
+      run: |
+        adjustedFileNames=(${ADJUSTED_FILE_NAMES})
+        filePaths=("${adjustedFileNames[@]/#/./dist/}")
         joinedPaths="${filePaths[*]}"
         python upload_to_gigafile.py $joinedPaths
       env:
-        APP_FILE_NAMES: ${{ steps.collect_app_files.outputs.APP_FILE_NAMES }}
+        ADJUSTED_FILE_NAMES: ${{ steps.adjust_file_paths.outputs.ADJUSTED_FILE_NAMES }}
       shell: bash
 
     - name: Install Slack SDK
