@@ -19,7 +19,7 @@ jobs:
         
         curl -s -o files.json -H "Authorization: token $GITHUB_TOKEN" $PR_FILES_URL
         edited_files=$(jq '[.[] | .filename] | join(", ")' files.json)
-        cat edited_files
+        echo $edited_files
 
     - name: Display content of files.json
       run: cat files.json
