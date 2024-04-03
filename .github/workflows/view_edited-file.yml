@@ -1,0 +1,25 @@
+name: Get PR Files Info
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  get-pr-files:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Get list of files from PR
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        PR_FILES_URL="https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files"
+        
+        curl -s -o files.json -H "Authorization: token $GITHUB_TOKEN" $PR_FILES_URL
+        edited_files=$(jq '[.[] | .filename] | join(", ")' files.json)
+        echo $edited_files
+
+    - name: Display content of files.json
+      run: cat files.json
